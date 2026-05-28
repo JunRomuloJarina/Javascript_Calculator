@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        #calculator {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(4, 60px);
+            grid-gap: 10px;
+            justify-content: center;
+        }
+
+        #display {
+            grid-column: span 4;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 2em;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box; /* Include padding in width */
+            background-color: #ecf0f1;
+            color: #333;
+        }
+
+        button {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #e0e0e0;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #d0d0d0;
+        }
+
+        button:active {
+            background-color: #c0c0c0;
+        }
+
+        button.operator-button { /* For +, -, *, / */
+            background-color: #f39c12;
+            color: white;
+        }
+
+        button.operator-button:hover {
+            background-color: #e67e22;
+        }
+
+        button[type='submit'] { /* Equals button */
+            background-color: #2ecc71;
+            color: white;
+            grid-column: span 2;
+            width: 100%;
+        }
+
+        button[type='submit']:hover {
+            background-color: #27ae60;
+        }
+
+        button.clear-button { /* Clear button */
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        button.clear-button:hover {
+            background-color: #c0392b;
+        }
+
+        .parenthesis-button {
+             background-color: #3498db;
+             color: white;
+        }
+
+        .history-button {
+            background-color: #95a5a6;
+            color: white;
+            grid-column: span 4;
+            width: 100%;
+            height: 40px;
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        button.parenthesis-button:hover {
+            background-color: #2980b9;
+        }
+        
+        button.history-button:hover {
+            background-color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>Calculator</h1>
+
+    <form id="calculator">
+        <input type="text" id="display">
+        
+        <button type="button" onclick="display.value = ''" class="clear-button">C</button>
+        <button type="button" onclick="appendToDisplay('(')" class="parenthesis-button">(</button>
+        <button type="button" onclick="appendToDisplay(')')" class="parenthesis-button">)</button>
+        <button type="button" onclick="appendToDisplay('/')" class="operator-button">/</button>
+
+        <button type="button" onclick="appendToDisplay('7')">7</button>
+        <button type="button" onclick="appendToDisplay('8')">8</button>
+        <button type="button" onclick="appendToDisplay('9')">9</button>
+        <button type="button" onclick="appendToDisplay('*')" class="operator-button">*</button>
+
+        <button type="button" onclick="appendToDisplay('4')">4</button>
+        <button type="button" onclick="appendToDisplay('5')">5</button>
+        <button type="button" onclick="appendToDisplay('6')">6</button>
+        <button type="button" onclick="appendToDisplay('-')" class="operator-button">-</button>
+
+        <button type="button" onclick="appendToDisplay('1')">1</button>
+        <button type="button" onclick="appendToDisplay('2')">2</button>
+        <button type="button" onclick="appendToDisplay('3')">3</button>
+        <button type="button" onclick="appendToDisplay('+')" class="operator-button">+</button>
+
+        <button type="button" onclick="appendToDisplay('0')">0</button>
+        <button type="button" onclick="appendToDisplay('.')">.</button>
+        <button type="submit">=</button>
+
+        <button type="button" id="historyBtn" class="history-button">View History</button>
+    </form>
+
+    <script>
+        const display = document.getElementById('display');
+        const calculator = document.getElementById('calculator');
+        const history = [];
+
+        function appendToDisplay(value) {
+            display.value += value;
+        }
+
+        // Consolidated Input Validation
+        display.addEventListener('input', function() {
+            const value = display.value;
+            
+            // Prevent double decimals
+            if (value.includes('..')) {
+                display.value = value.replace('..', '.');
+            }
+            
+            // Prevent double operators
+            if (value.includes('++') || value.includes('--') || value.includes('**') || value.includes('//')) {
+                display.value = value.replace(/(\+\+|--|\*\*|\/\/)/g, match => match[0]);
+            }
+
+            // Limit length
+            if (value.length > 25) {
+                display.value = value.slice(0, 25);
+            }
+        });
+
+        // Keyboard support
+        display.addEventListener('keypress', function(event) {
+            const validChars = '0123456789.+-*/()';
+            if (!validChars.includes(event.key)) {
+                event.preventDefault();
+            }
+        });
+
+        calculator.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (!display.value) return;
+            try {
+                // Using Function constructor as a slightly safer alternative to eval
+                const result = new Function(`return ${display.value}`)();
+                if (result !== undefined) {
+                    history.push(`${display.value} = ${result}`);
+                    display.value = result;
+                }
+            } catch (error) {
+                display.value = 'Error';
+            }
+        });
+
+        document.getElementById('historyBtn').addEventListener('click', () => {
+            if (history.length === 0) alert("No history yet.");
+            else alert(history.join('\n'));
+        });
+    </script>
+</body>
+</html>
